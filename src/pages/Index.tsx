@@ -180,6 +180,8 @@ const Index = () => {
               onClose={() => setShowAI(false)}
               currentFile={activeFile}
               onCodeGenerate={(code) => handleFileContentChange(code)}
+              onNewFile={handleNewFile}
+              files={files}
             />
           </div>
         )}
@@ -265,6 +267,8 @@ const Index = () => {
             onClose={() => setShowAI(false)}
             currentFile={activeFile}
             onCodeGenerate={(code) => handleFileContentChange(code)}
+            onNewFile={handleNewFile}
+            files={files}
           />
         </div>
       )}
