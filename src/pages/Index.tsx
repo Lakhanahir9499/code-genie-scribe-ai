@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { Sidebar } from '@/components/Sidebar';
@@ -7,6 +6,7 @@ import { TabBar } from '@/components/TabBar';
 import { StatusBar } from '@/components/StatusBar';
 import { ActivityBar } from '@/components/ActivityBar';
 import { MobileHeader } from '@/components/MobileHeader';
+import { MobileLivePreview } from '@/components/MobileLivePreview';
 import { CodeGenerator } from '@/components/CodeGenerator';
 import { FileExplorer } from '@/components/FileExplorer';
 import { Terminal } from '@/components/Terminal';
@@ -51,6 +51,7 @@ const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(true);
   const [showTerminal, setShowTerminal] = useState(false);
+  const [showMobileLivePreview, setShowMobileLivePreview] = useState(false);
   const isMobile = useIsMobile();
 
   const activeFile = files.find(f => f.id === activeFileId);
@@ -172,11 +173,26 @@ const Index = () => {
           onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
           onDownload={downloadProject}
           onNewFile={handleNewFile}
+          onToggleAI={() => setShowAI(!showAI)}
+          onToggleCodeGenerator={() => setShowCodeGenerator(!showCodeGenerator)}
+          onToggleLivePreview={() => setShowMobileLivePreview(!showMobileLivePreview)}
+          showLivePreview={showMobileLivePreview}
+          activeFile={activeFile}
         />
         
         {!sidebarCollapsed && (
           <div className="h-64 border-b border-[#3c3c3c]">
             {renderSidebarContent()}
+          </div>
+        )}
+        
+        {showAI && (
+          <div className="h-80 border-b border-[#3c3c3c]">
+            <AIAssistant
+              onClose={() => setShowAI(false)}
+              currentFile={activeFile}
+              onCodeGenerate={(code) => handleFileContentChange(code)}
+            />
           </div>
         )}
         
@@ -193,6 +209,13 @@ const Index = () => {
             onContentChange={handleFileContentChange}
           />
         </div>
+        
+        {showMobileLivePreview && activeFile?.language === 'html' && (
+          <MobileLivePreview
+            code={activeFile.content}
+            onClose={() => setShowMobileLivePreview(false)}
+          />
+        )}
         
         <StatusBar 
           file={activeFile}
