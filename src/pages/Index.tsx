@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { Sidebar } from '@/components/Sidebar';
@@ -9,6 +8,7 @@ import { ActivityBar } from '@/components/ActivityBar';
 import { MobileHeader } from '@/components/MobileHeader';
 import { EditorFile } from '@/types/editor';
 import { useIsMobile } from '@/hooks/use-mobile';
+import JSZip from 'jszip';
 
 const Index = () => {
   const [files, setFiles] = useState<EditorFile[]>([
@@ -70,7 +70,6 @@ const Index = () => {
   }, []);
 
   const downloadProject = useCallback(() => {
-    const JSZip = require('jszip');
     const zip = new JSZip();
     
     files.forEach(file => {
