@@ -1,9 +1,9 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
-
+/* VS Code Theme Variables */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -37,19 +37,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -99,5 +92,55 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+  }
+
+  /* VS Code specific styles */
+  .monaco-editor {
+    background-color: #1e1e1e !important;
+  }
+
+  .monaco-editor .view-lines {
+    background-color: #1e1e1e !important;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1e1e1e;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
+  }
+
+  /* Prevent text selection on UI elements */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .monaco-editor .margin,
+  .monaco-editor .minimap {
+    display: none !important;
+  }
+  
+  .monaco-editor {
+    font-size: 12px !important;
   }
 }
