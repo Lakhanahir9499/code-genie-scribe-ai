@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { Sidebar } from '@/components/Sidebar';
@@ -6,6 +7,9 @@ import { TabBar } from '@/components/TabBar';
 import { StatusBar } from '@/components/StatusBar';
 import { ActivityBar } from '@/components/ActivityBar';
 import { MobileHeader } from '@/components/MobileHeader';
+import { CodeGenerator } from '@/components/CodeGenerator';
+import { FileExplorer } from '@/components/FileExplorer';
+import { Terminal } from '@/components/Terminal';
 import { EditorFile } from '@/types/editor';
 import { useIsMobile } from '@/hooks/use-mobile';
 import JSZip from 'jszip';
@@ -21,10 +25,18 @@ const Index = () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello World</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #007acc; }
+        .container { max-width: 800px; margin: 0 auto; }
+    </style>
 </head>
 <body>
-    <h1>Hello World!</h1>
-    <p>Welcome to your code editor</p>
+    <div class="container">
+        <h1>Welcome to VS Code Editor!</h1>
+        <p>This is a fully functional code editor with AI assistance.</p>
+        <button onclick="alert('Hello from JavaScript!')">Click me!</button>
+    </div>
 </body>
 </html>`,
       language: 'html',
@@ -35,8 +47,10 @@ const Index = () => {
   const [activeFileId, setActiveFileId] = useState<string>('1');
   const [sidebarView, setSidebarView] = useState<'explorer' | 'search' | 'git' | 'extensions'>('explorer');
   const [showAI, setShowAI] = useState(false);
+  const [showCodeGenerator, setShowCodeGenerator] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(true);
+  const [showTerminal, setShowTerminal] = useState(false);
   const isMobile = useIsMobile();
 
   const activeFile = files.find(f => f.id === activeFileId);
@@ -58,16 +72,43 @@ const Index = () => {
   }, [activeFileId]);
 
   const handleNewFile = useCallback((name: string, content: string = '', language: string = 'javascript') => {
+    const ext = name.split('.').pop()?.toLowerCase();
+    let detectedLanguage = language;
+    
+    switch (ext) {
+      case 'html': detectedLanguage = 'html'; break;
+      case 'css': detectedLanguage = 'css'; break;
+      case 'js': detectedLanguage = 'javascript'; break;
+      case 'ts': detectedLanguage = 'typescript'; break;
+      case 'tsx': detectedLanguage = 'typescript'; break;
+      case 'jsx': detectedLanguage = 'javascript'; break;
+      case 'json': detectedLanguage = 'json'; break;
+      case 'md': detectedLanguage = 'markdown'; break;
+      case 'py': detectedLanguage = 'python'; break;
+    }
+
     const newFile: EditorFile = {
       id: Date.now().toString(),
       name,
       content,
-      language,
+      language: detectedLanguage,
       isActive: false
     };
     setFiles(prev => [...prev, newFile]);
     setActiveFileId(newFile.id);
   }, []);
+
+  const handleDeleteFile = useCallback((fileId: string) => {
+    if (files.length === 1) return; // Don't delete the last file
+    
+    setFiles(prev => {
+      const updated = prev.filter(f => f.id !== fileId);
+      if (fileId === activeFileId && updated.length > 0) {
+        setActiveFileId(updated[0].id);
+      }
+      return updated;
+    });
+  }, [activeFileId, files.length]);
 
   const downloadProject = useCallback(() => {
     const zip = new JSZip();
@@ -88,6 +129,42 @@ const Index = () => {
     });
   }, [files]);
 
+  const handleCodeGenerated = useCallback((code: string, language: string) => {
+    const fileName = `generated-${Date.now()}.${language === 'html' ? 'html' : language === 'css' ? 'css' : 'js'}`;
+    handleNewFile(fileName, code, language);
+  }, [handleNewFile]);
+
+  const renderSidebarContent = () => {
+    if (showCodeGenerator) {
+      return <CodeGenerator onCodeGenerated={handleCodeGenerated} />;
+    }
+    
+    switch (sidebarView) {
+      case 'explorer':
+        return (
+          <FileExplorer
+            files={files}
+            activeFileId={activeFileId}
+            onFileSelect={setActiveFileId}
+            onNewFile={handleNewFile}
+            onDeleteFile={handleDeleteFile}
+            onDownload={downloadProject}
+          />
+        );
+      default:
+        return (
+          <Sidebar
+            view={sidebarView}
+            files={files}
+            activeFileId={activeFileId}
+            onFileSelect={setActiveFileId}
+            onNewFile={handleNewFile}
+            onDownload={downloadProject}
+          />
+        );
+    }
+  };
+
   if (isMobile) {
     return (
       <div className="h-screen flex flex-col bg-[#1e1e1e] text-white">
@@ -99,14 +176,7 @@ const Index = () => {
         
         {!sidebarCollapsed && (
           <div className="h-64 border-b border-[#3c3c3c]">
-            <Sidebar
-              view={sidebarView}
-              files={files}
-              activeFileId={activeFileId}
-              onFileSelect={setActiveFileId}
-              onNewFile={handleNewFile}
-              onDownload={downloadProject}
-            />
+            {renderSidebarContent()}
           </div>
         )}
         
@@ -139,18 +209,12 @@ const Index = () => {
         onViewChange={setSidebarView}
         onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
         onToggleAI={() => setShowAI(!showAI)}
+        onToggleCodeGenerator={() => setShowCodeGenerator(!showCodeGenerator)}
       />
       
       {!sidebarCollapsed && (
         <div className="w-64 border-r border-[#3c3c3c] flex-shrink-0">
-          <Sidebar
-            view={sidebarView}
-            files={files}
-            activeFileId={activeFileId}
-            onFileSelect={setActiveFileId}
-            onNewFile={handleNewFile}
-            onDownload={downloadProject}
-          />
+          {renderSidebarContent()}
         </div>
       )}
       
@@ -169,21 +233,19 @@ const Index = () => {
           />
         </div>
         
-        {!panelCollapsed && (
+        {!panelCollapsed && showTerminal && (
           <div className="h-64 border-t border-[#3c3c3c]">
-            <div className="h-full bg-[#252526] p-4">
-              <h3 className="text-sm font-medium mb-2">Terminal</h3>
-              <div className="bg-black p-2 rounded text-green-400 font-mono text-sm">
-                $ Ready for commands...
-              </div>
-            </div>
+            <Terminal onClose={() => setShowTerminal(false)} />
           </div>
         )}
         
         <StatusBar 
           file={activeFile}
           cursorPosition={{ line: 1, column: 1 }}
-          onTogglePanel={() => setPanelCollapsed(!panelCollapsed)}
+          onTogglePanel={() => {
+            setPanelCollapsed(!panelCollapsed);
+            if (panelCollapsed) setShowTerminal(true);
+          }}
         />
       </div>
       
