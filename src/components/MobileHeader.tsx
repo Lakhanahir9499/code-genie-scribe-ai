@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { Menu, Download, Plus, Bot, Sparkles, Eye } from 'lucide-react';
+import { Menu, Download, Plus, Bot, Eye } from 'lucide-react';
 
 interface MobileHeaderProps {
   onMenuToggle: () => void;
   onDownload: () => void;
   onNewFile: (name: string) => void;
   onToggleAI?: () => void;
-  onToggleCodeGenerator?: () => void;
   onToggleLivePreview?: () => void;
   showLivePreview?: boolean;
   activeFile?: any;
@@ -18,7 +17,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   onDownload,
   onNewFile,
   onToggleAI,
-  onToggleCodeGenerator,
   onToggleLivePreview,
   showLivePreview,
   activeFile
@@ -36,16 +34,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2">
-        {onToggleCodeGenerator && (
-          <button
-            onClick={onToggleCodeGenerator}
-            className="p-1 rounded hover:bg-[#3c3c3c]"
-            title="AI Code Generator"
-          >
-            <Sparkles size={16} className="text-yellow-400" />
-          </button>
-        )}
-        
         {onToggleAI && (
           <button
             onClick={onToggleAI}

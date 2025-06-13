@@ -7,7 +7,6 @@ import { StatusBar } from '@/components/StatusBar';
 import { ActivityBar } from '@/components/ActivityBar';
 import { MobileHeader } from '@/components/MobileHeader';
 import { MobileLivePreview } from '@/components/MobileLivePreview';
-import { CodeGenerator } from '@/components/CodeGenerator';
 import { FileExplorer } from '@/components/FileExplorer';
 import { Terminal } from '@/components/Terminal';
 import { EditorFile } from '@/types/editor';
@@ -47,7 +46,6 @@ const Index = () => {
   const [activeFileId, setActiveFileId] = useState<string>('1');
   const [sidebarView, setSidebarView] = useState<'explorer' | 'search' | 'git' | 'extensions'>('explorer');
   const [showAI, setShowAI] = useState(false);
-  const [showCodeGenerator, setShowCodeGenerator] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(true);
   const [showTerminal, setShowTerminal] = useState(false);
@@ -100,7 +98,7 @@ const Index = () => {
   }, []);
 
   const handleDeleteFile = useCallback((fileId: string) => {
-    if (files.length === 1) return; // Don't delete the last file
+    if (files.length === 1) return;
     
     setFiles(prev => {
       const updated = prev.filter(f => f.id !== fileId);
@@ -130,16 +128,7 @@ const Index = () => {
     });
   }, [files]);
 
-  const handleCodeGenerated = useCallback((code: string, language: string) => {
-    const fileName = `generated-${Date.now()}.${language === 'html' ? 'html' : language === 'css' ? 'css' : 'js'}`;
-    handleNewFile(fileName, code, language);
-  }, [handleNewFile]);
-
   const renderSidebarContent = () => {
-    if (showCodeGenerator) {
-      return <CodeGenerator onCodeGenerated={handleCodeGenerated} />;
-    }
-    
     switch (sidebarView) {
       case 'explorer':
         return (
@@ -174,7 +163,6 @@ const Index = () => {
           onDownload={downloadProject}
           onNewFile={handleNewFile}
           onToggleAI={() => setShowAI(!showAI)}
-          onToggleCodeGenerator={() => setShowCodeGenerator(!showCodeGenerator)}
           onToggleLivePreview={() => setShowMobileLivePreview(!showMobileLivePreview)}
           showLivePreview={showMobileLivePreview}
           activeFile={activeFile}
@@ -232,7 +220,6 @@ const Index = () => {
         onViewChange={setSidebarView}
         onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
         onToggleAI={() => setShowAI(!showAI)}
-        onToggleCodeGenerator={() => setShowCodeGenerator(!showCodeGenerator)}
       />
       
       {!sidebarCollapsed && (

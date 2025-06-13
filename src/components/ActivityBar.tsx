@@ -6,9 +6,7 @@ import {
   GitBranch, 
   Settings, 
   Bot,
-  Menu,
-  Code2,
-  Sparkles
+  Menu
 } from 'lucide-react';
 
 interface ActivityBarProps {
@@ -16,15 +14,13 @@ interface ActivityBarProps {
   onViewChange: (view: 'explorer' | 'search' | 'git' | 'extensions') => void;
   onToggleSidebar: () => void;
   onToggleAI: () => void;
-  onToggleCodeGenerator?: () => void;
 }
 
 export const ActivityBar: React.FC<ActivityBarProps> = ({
   activeView,
   onViewChange,
   onToggleSidebar,
-  onToggleAI,
-  onToggleCodeGenerator
+  onToggleAI
 }) => {
   const activities = [
     { id: 'explorer' as const, icon: Files, label: 'Explorer' },
@@ -59,16 +55,6 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
       ))}
       
       <div className="flex-1" />
-      
-      {onToggleCodeGenerator && (
-        <button
-          onClick={onToggleCodeGenerator}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#3c3c3c] mb-2"
-          title="AI Code Generator"
-        >
-          <Sparkles size={20} className="text-yellow-400" />
-        </button>
-      )}
       
       <button
         onClick={onToggleAI}

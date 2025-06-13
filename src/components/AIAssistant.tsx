@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Send, Bot, Code, Sparkles } from 'lucide-react';
+import { X, Send, Bot, Sparkles } from 'lucide-react';
 import { EditorFile } from '@/types/editor';
 
 const GEMINI_API_KEY = 'AIzaSyCPezF6be0GtS76zM3j0_BSu0bVYIRTkpk';
@@ -28,7 +28,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     {
       id: '1',
       type: 'ai',
-      content: 'Hi! I\'m your AI coding assistant. I can help you write, debug, and improve your code. What would you like to work on?',
+      content: 'Hi! I\'m your AI coding assistant. I can help you generate new code or edit existing code. Just tell me what you want to create or modify!',
       timestamp: new Date()
     }
   ]);
@@ -46,13 +46,26 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const userInput = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      const context = currentFile ? 
-        `Current file: ${currentFile.name} (${currentFile.language})\nCurrent content:\n${currentFile.content}\n\nUser request: ${input}` :
-        input;
+      let promptText = '';
+      
+      if (currentFile && currentFile.content.trim()) {
+        // If there's existing code, ask AI to modify it
+        promptText = `Current file: ${currentFile.name} (${currentFile.language})
+Current code:
+${currentFile.content}
+
+User request: ${userInput}
+
+Please provide the complete modified code based on the user's request. Only return the code without any explanations or markdown formatting.`;
+      } else {
+        // If no existing code, generate new code
+        promptText = `Generate ${currentFile?.language || 'javascript'} code for: ${userInput}. Only return the code without any explanations or markdown formatting.`;
+      }
 
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -62,7 +75,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are a helpful coding assistant. ${context}`
+              text: promptText
             }]
           }]
         })
@@ -75,30 +88,23 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       const data = await response.json();
       const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t generate a response.';
 
+      // Clean the code - remove markdown formatting if present
+      const cleanCode = aiResponse.replace(/```[\w]*\n?/g, '').replace(/```$/g, '').trim();
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: aiResponse,
+        content: cleanCode,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
 
-      // Check if response contains code and offer to apply it
-      if (aiResponse.includes('```') && currentFile) {
-        const codeBlocks = aiResponse.match(/```[\s\S]*?```/g);
-        if (codeBlocks && codeBlocks.length > 0) {
-          // Extract first code block
-          const code = codeBlocks[0].replace(/```\w*\n?/, '').replace(/```$/, '');
-          if (code.trim()) {
-            setTimeout(() => {
-              if (window.confirm('Apply this code to the current file?')) {
-                onCodeGenerate(code.trim());
-              }
-            }, 500);
-          }
-        }
+      // Auto-apply the generated code
+      if (cleanCode && cleanCode.length > 10) {
+        onCodeGenerate(cleanCode);
       }
+
     } catch (error) {
       console.error('AI Error:', error);
       const errorMessage: Message = {
@@ -153,7 +159,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                   : 'bg-[#3c3c3c] text-[#cccccc]'
               }`}
             >
-              <pre className="whitespace-pre-wrap font-sans">{message.content}</pre>
+              <pre className="whitespace-pre-wrap font-mono text-xs">{message.content}</pre>
             </div>
             {message.type === 'user' && (
               <div className="w-6 h-6 rounded-full bg-[#4CAF50] flex items-center justify-center flex-shrink-0">
@@ -170,7 +176,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             <div className="bg-[#3c3c3c] text-[#cccccc] p-2 rounded text-sm">
               <div className="flex items-center gap-1">
                 <Sparkles size={12} className="animate-pulse" />
-                <span>Thinking...</span>
+                <span>Generating code...</span>
               </div>
             </div>
           </div>
@@ -184,7 +190,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about your code..."
+            placeholder="Tell me what code to generate or edit..."
             className="flex-1 bg-[#3c3c3c] text-white px-3 py-2 text-sm rounded border-none outline-none"
             disabled={isLoading}
           />
